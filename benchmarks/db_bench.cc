@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 
 #include "leveldb/cache.h"
 #include "leveldb/comparator.h"
@@ -72,7 +73,7 @@ static int FLAGS_reads = -1;
 static int FLAGS_threads = 1;
 
 // Size of each value
-static int FLAGS_value_size = 100;
+static int FLAGS_value_size = 4096;
 
 // Arrange to generate values that shrink to this fraction of
 // their original size after compression
@@ -756,6 +757,13 @@ class Benchmark {
     }
   }
 
+  void ClearPageCache() {
+	sync();
+	std::ofstream ofs("/proc/sys/vm/drop_caches");
+	ofs << "3" << std::endl;
+	ofs.close();
+  }
+
   void Open() {
     assert(db_ == nullptr);
     Options options;
@@ -791,6 +799,7 @@ class Benchmark {
   void WriteRandom(ThreadState* thread) { DoWrite(thread, false); }
 
   void DoWrite(ThreadState* thread, bool seq) {
+	ClearPageCache();
     if (num_ != FLAGS_num) {
       char msg[100];
       std::snprintf(msg, sizeof(msg), "(%d ops)", num_);
@@ -821,6 +830,7 @@ class Benchmark {
   }
 
   void ReadSequential(ThreadState* thread) {
+	ClearPageCache();
     Iterator* iter = db_->NewIterator(ReadOptions());
     int i = 0;
     int64_t bytes = 0;
@@ -834,6 +844,7 @@ class Benchmark {
   }
 
   void ReadReverse(ThreadState* thread) {
+	ClearPageCache();
     Iterator* iter = db_->NewIterator(ReadOptions());
     int i = 0;
     int64_t bytes = 0;
@@ -847,6 +858,7 @@ class Benchmark {
   }
 
   void ReadRandom(ThreadState* thread) {
+	ClearPageCache();
     ReadOptions options;
     std::string value;
     int found = 0;
@@ -865,6 +877,7 @@ class Benchmark {
   }
 
   void ReadMissing(ThreadState* thread) {
+	ClearPageCache();
     ReadOptions options;
     std::string value;
     KeyBuffer key;
@@ -878,6 +891,7 @@ class Benchmark {
   }
 
   void ReadHot(ThreadState* thread) {
+	ClearPageCache();
     ReadOptions options;
     std::string value;
     const int range = (FLAGS_num + 99) / 100;
@@ -891,6 +905,7 @@ class Benchmark {
   }
 
   void SeekRandom(ThreadState* thread) {
+	ClearPageCache();
     ReadOptions options;
     int found = 0;
     KeyBuffer key;
@@ -909,6 +924,7 @@ class Benchmark {
   }
 
   void SeekOrdered(ThreadState* thread) {
+	ClearPageCache();
     ReadOptions options;
     Iterator* iter = db_->NewIterator(options);
     int found = 0;
@@ -928,6 +944,7 @@ class Benchmark {
   }
 
   void DoDelete(ThreadState* thread, bool seq) {
+	ClearPageCache();
     RandomGenerator gen;
     WriteBatch batch;
     Status s;
@@ -953,6 +970,7 @@ class Benchmark {
   void DeleteRandom(ThreadState* thread) { DoDelete(thread, false); }
 
   void ReadWhileWriting(ThreadState* thread) {
+	ClearPageCache();
     if (thread->tid > 0) {
       ReadRandom(thread);
     } else {
