@@ -604,6 +604,8 @@ class Benchmark {
       }
 
       if (method != nullptr) {
+	std::fprintf(stdout, "clear page cache\n");
+	ClearPageCache();
         RunBenchmark(num_threads, name, method);
       }
     }
@@ -799,7 +801,6 @@ class Benchmark {
   void WriteRandom(ThreadState* thread) { DoWrite(thread, false); }
 
   void DoWrite(ThreadState* thread, bool seq) {
-	ClearPageCache();
     if (num_ != FLAGS_num) {
       char msg[100];
       std::snprintf(msg, sizeof(msg), "(%d ops)", num_);
@@ -830,7 +831,6 @@ class Benchmark {
   }
 
   void ReadSequential(ThreadState* thread) {
-	ClearPageCache();
     Iterator* iter = db_->NewIterator(ReadOptions());
     int i = 0;
     int64_t bytes = 0;
@@ -844,7 +844,6 @@ class Benchmark {
   }
 
   void ReadReverse(ThreadState* thread) {
-	ClearPageCache();
     Iterator* iter = db_->NewIterator(ReadOptions());
     int i = 0;
     int64_t bytes = 0;
@@ -858,7 +857,6 @@ class Benchmark {
   }
 
   void ReadRandom(ThreadState* thread) {
-	ClearPageCache();
     ReadOptions options;
     std::string value;
     int found = 0;
@@ -877,7 +875,6 @@ class Benchmark {
   }
 
   void ReadMissing(ThreadState* thread) {
-	ClearPageCache();
     ReadOptions options;
     std::string value;
     KeyBuffer key;
@@ -891,7 +888,6 @@ class Benchmark {
   }
 
   void ReadHot(ThreadState* thread) {
-	ClearPageCache();
     ReadOptions options;
     std::string value;
     const int range = (FLAGS_num + 99) / 100;
@@ -905,7 +901,6 @@ class Benchmark {
   }
 
   void SeekRandom(ThreadState* thread) {
-	ClearPageCache();
     ReadOptions options;
     int found = 0;
     KeyBuffer key;
@@ -924,7 +919,6 @@ class Benchmark {
   }
 
   void SeekOrdered(ThreadState* thread) {
-	ClearPageCache();
     ReadOptions options;
     Iterator* iter = db_->NewIterator(options);
     int found = 0;
@@ -944,7 +938,6 @@ class Benchmark {
   }
 
   void DoDelete(ThreadState* thread, bool seq) {
-	ClearPageCache();
     RandomGenerator gen;
     WriteBatch batch;
     Status s;
@@ -970,7 +963,6 @@ class Benchmark {
   void DeleteRandom(ThreadState* thread) { DoDelete(thread, false); }
 
   void ReadWhileWriting(ThreadState* thread) {
-	ClearPageCache();
     if (thread->tid > 0) {
       ReadRandom(thread);
     } else {
