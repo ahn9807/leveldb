@@ -63,6 +63,9 @@ static const char* FLAGS_benchmarks =
     "snappycomp,"
     "snappyuncomp,";
 
+// Chear Page cache
+static int FLAGS_clear_page_cache = false;
+
 // Number of key/values to place in database
 static int FLAGS_num = 1000000;
 
@@ -604,8 +607,10 @@ class Benchmark {
       }
 
       if (method != nullptr) {
-	std::fprintf(stdout, "clear page cache\n");
-	ClearPageCache();
+	if(FLAGS_clear_page_cache) {
+	  ClearPageCache();
+	}
+
         RunBenchmark(num_threads, name, method);
       }
     }
@@ -1079,6 +1084,8 @@ int main(int argc, char** argv) {
       FLAGS_open_files = n;
     } else if (strncmp(argv[i], "--db=", 5) == 0) {
       FLAGS_db = argv[i] + 5;
+    } else if (sscanf(argv[i], "--clear_page_cache=%d%c", &n, &junk) == 1) {
+      FLAGS_clear_page_cache = n;
     } else {
       std::fprintf(stderr, "Invalid flag '%s'\n", argv[i]);
       std::exit(1);
